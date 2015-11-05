@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"golang.org/x/net/websocket"
 	"encoding/json"
+	"fmt"
+	"os"
 )
 
 const server = ":6969"
@@ -46,7 +48,8 @@ func Echo(ws *websocket.Conn) {
 			return
 		}
 		out, _ := json.Marshal(reqJSON)
-		log.Println(string(out))
+//		log.Println(string(out))
+		fmt.Fprint(os.Stdout, string(out))
 		active[reqJSON.Name] = ws
 		resp := &JSONRequest {
 			Msg: reqJSON.Msg,
