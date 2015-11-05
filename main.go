@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 )
 
-const server = "localhost:6969"
+const server = ":6969"
 
 var active = make(map[string]*websocket.Conn)
 
@@ -38,8 +38,8 @@ func Echo(ws *websocket.Conn) {
 		log.Println(string(out))
 		active[reqJSON.Name] = ws
 		resp := &JSONRequest {
-			Msg: "Message accepted",
-			Name: "Success",
+			Msg: reqJSON.Msg,
+			Name: reqJSON.Name,
 		}
 
 		for _, v := range(active) {
