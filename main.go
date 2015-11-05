@@ -44,12 +44,12 @@ func Echo(ws *websocket.Conn) {
 
 	for {
 		if err := websocket.JSON.Receive(ws, &reqJSON); err != nil {
-			panic(err)
+			fmt.Fprint(os.Stdout, err)
 			return
 		}
 		out, _ := json.Marshal(reqJSON)
-//		log.Println(string(out))
-		fmt.Fprint(os.Stdout, string(out) + "\n")
+		log.Println(string(out))
+
 		active[reqJSON.Name] = ws
 		resp := &JSONRequest {
 			Msg: reqJSON.Msg,
@@ -58,7 +58,7 @@ func Echo(ws *websocket.Conn) {
 
 		for n, v := range(active) {
 			if err := websocket.JSON.Send(v, resp); err != nil {
-				log.Println(err.Error())
+				fmt.Fprint(os.Stdout, err)
 				delete(active, n)
 			}
 		}
