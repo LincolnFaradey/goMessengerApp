@@ -49,7 +49,7 @@ func Echo(ws *websocket.Conn) {
 		}
 		out, _ := json.Marshal(reqJSON)
 //		log.Println(string(out))
-		fmt.Fprint(os.Stdout, string(out))
+		fmt.Fprint(os.Stdout, string(out) + "\n")
 		active[reqJSON.Name] = ws
 		resp := &JSONRequest {
 			Msg: reqJSON.Msg,
