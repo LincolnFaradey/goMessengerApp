@@ -42,9 +42,10 @@ func Echo(ws *websocket.Conn) {
 			Name: reqJSON.Name,
 		}
 
-		for _, v := range(active) {
+		for k, v := range(active) {
+			print("Name", k)
 			if err := websocket.JSON.Send(v, resp); err != nil {
-			log.Println(err.Error())
+				log.Println(err.Error())
 			return
 		}
 		}
