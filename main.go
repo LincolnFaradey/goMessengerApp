@@ -57,8 +57,7 @@ func Echo(ws *websocket.Conn) {
 			if err := websocket.JSON.Send(v, resp); err != nil {
 				log.Println(err.Error())
 				delete(active, n)
-			return
-		}
+			}
 		}
 	}
 }
