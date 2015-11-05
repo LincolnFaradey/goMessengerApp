@@ -16,8 +16,24 @@ type JSONRequest struct {
 	Name string `json:"name"`
 }
 
-func init() {
-	log.Println("Initialyzing")
+func Register(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var JSON JSONRequest
+	if err := decoder.Decode(&JSON); err != nil {
+		resp := &JSONRequest{
+			Name: "Error",
+			Msg: "Couldn't decode JSON",
+		}
+		js, _ := json.Marshal(resp)
+		w.Write(js)
+	}
+	active[JSON.Name] = nil
+	resp := &JSONRequest{
+			Name: "Message",
+			Msg: "Regestered",
+		}
+	js, _ := json.Marshal(resp)
+	w.Write(js)
 }
 
 func Echo(ws *websocket.Conn) {
@@ -42,8 +58,7 @@ func Echo(ws *websocket.Conn) {
 			Name: reqJSON.Name,
 		}
 
-		for k, v := range(active) {
-			print("Name", k)
+		for _, v := range(active) {
 			if err := websocket.JSON.Send(v, resp); err != nil {
 				log.Println(err.Error())
 			return
@@ -55,7 +70,7 @@ func Echo(ws *websocket.Conn) {
 func main() {
 	log.Println("Server started on", server)
 	http.Handle("/", websocket.Handler(Echo))
-
+	http.HandleFunc("/register", Register)
 	if err := http.ListenAndServe(server, nil); err != nil {
 		panic(err)
 	}
