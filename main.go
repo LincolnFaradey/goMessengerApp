@@ -9,6 +9,8 @@ import (
 
 const server = "localhost:6969"
 
+var active = make(map[string]*websocket.Conn)
+
 type JSONRequest struct {
 	Msg string `json:"message"`
 	Name string `json:"name"`
@@ -34,14 +36,17 @@ func Echo(ws *websocket.Conn) {
 		}
 		out, _ := json.Marshal(reqJSON)
 		log.Println(string(out))
+		active[reqJSON.Name] = ws
+		resp := &JSONRequest {
+			Msg: "Message accepted",
+			Name: "Success",
+		}
 
-		resp := &JSONRequest{
-				Msg: "Message accepted",
-				Name: "Success",
-			}
-		if err := websocket.JSON.Send(ws, resp); err != nil {
+		for _, v := range(active) {
+			if err := websocket.JSON.Send(v, resp); err != nil {
 			log.Println(err.Error())
 			return
+		}
 		}
 	}
 }
