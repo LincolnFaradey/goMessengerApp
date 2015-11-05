@@ -43,11 +43,6 @@ func Echo(ws *websocket.Conn) {
 	for {
 		if err := websocket.JSON.Receive(ws, &reqJSON); err != nil {
 			panic(err)
-			resp := &JSONRequest{
-				Msg: "Cannot parse request",
-				Name: "Message error",
-			}
-			websocket.JSON.Send(ws, resp)
 			return
 		}
 		out, _ := json.Marshal(reqJSON)
@@ -58,9 +53,10 @@ func Echo(ws *websocket.Conn) {
 			Name: reqJSON.Name,
 		}
 
-		for _, v := range(active) {
+		for n, v := range(active) {
 			if err := websocket.JSON.Send(v, resp); err != nil {
 				log.Println(err.Error())
+				delete(active, n)
 			return
 		}
 		}
