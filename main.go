@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"golang.org/x/net/websocket"
-	"encoding/json"
 	"fmt"
 	"os"
 )
@@ -13,33 +12,17 @@ const server = ":6969"
 
 var active = make(map[string]*websocket.Conn)
 
-type JSONRequest struct {
-	Msg string `json:"message"`
+type Message struct {
+	Text string `json:"message"`
 	Name string `json:"name"`
 }
 
-func Register(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var JSON JSONRequest
-	if err := decoder.Decode(&JSON); err != nil {
-		resp := &JSONRequest{
-			Name: "Error",
-			Msg: "Couldn't decode JSON",
-		}
-		js, _ := json.Marshal(resp)
-		w.Write(js)
-	}
-	active[JSON.Name] = nil
-	resp := &JSONRequest{
-			Name: "Message",
-			Msg: "Regestered",
-		}
-	js, _ := json.Marshal(resp)
-	w.Write(js)
+type Online struct {
+	Users []string `json:"users"`
 }
 
 func Echo(ws *websocket.Conn) {
-	var reqJSON JSONRequest
+	var reqJSON Message
 	defer ws.Close()
 
 	for {
@@ -47,17 +30,19 @@ func Echo(ws *websocket.Conn) {
 			Log(err)
 			return
 		}
-		out, _ := json.Marshal(reqJSON)
-		log.Println(string(out))
 
 		active[reqJSON.Name] = ws
 
-		if reqJSON.Msg == "Register" {
+		if reqJSON.Text == "Register" {
+			if err := websocket.JSON.Send(ws, online()); err != nil {
+				Log(err)
+				return
+			}
 			continue
 		}
 
-		resp := &JSONRequest {
-			Msg: reqJSON.Msg,
+		resp := &Message{
+			Text: reqJSON.Text,
 			Name: reqJSON.Name,
 		}
 		go func() {
@@ -72,6 +57,17 @@ func Echo(ws *websocket.Conn) {
 	}
 }
 
+func online() *Online {
+	var names []string
+	for k, _ := range active {
+		names = append(names, k)
+	}
+
+	return &Online{
+		Users:names,
+	}
+}
+
 func Log(err error) {
 	fmt.Fprint(os.Stdout, err.Error() + "\n")
 }
@@ -79,7 +75,6 @@ func Log(err error) {
 func main() {
 	log.Println("Server started on", server)
 	http.Handle("/", websocket.Handler(Echo))
-	http.HandleFunc("/register", Register)
 	if err := http.ListenAndServe(server, nil); err != nil {
 		panic(err)
 	}
