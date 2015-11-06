@@ -47,7 +47,7 @@ func Echo(ws *websocket.Conn) {
 			continue
 		}
 
-		go sendAll(message)
+		go sendAll(&message)
 
 	}
 }
