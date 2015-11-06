@@ -12,6 +12,11 @@ const server = ":6969"
 
 var active = make(map[string]*websocket.Conn)
 
+type Peer struct  {
+	client *websocket.Conn
+	name string
+}
+
 type Message struct {
 	Text string `json:"message"`
 	Name string `json:"name"`
@@ -22,39 +27,42 @@ type Online struct {
 }
 
 func Echo(ws *websocket.Conn) {
-	var reqJSON Message
+	var message Message
 	defer ws.Close()
 
 	for {
-		if err := websocket.JSON.Receive(ws, &reqJSON); err != nil {
+		if err := websocket.JSON.Receive(ws, &message); err != nil {
 			Log(err)
 			return
 		}
 
-		active[reqJSON.Name] = ws
+		active[message.Name] = ws
 
-		if reqJSON.Text == "Register" {
+		if message.Text == "Register" {
 			if err := websocket.JSON.Send(ws, online()); err != nil {
 				Log(err)
+				delete(active, message.Name)
 				return
 			}
 			continue
 		}
 
-		resp := &Message{
-			Text: reqJSON.Text,
-			Name: reqJSON.Name,
-		}
-		go func() {
-			for n, v := range(active) {
-			if err := websocket.JSON.Send(v, resp); err != nil {
-				Log(err)
-				delete(active, n)
-			}
-		}
-		}()
+		go sendAll(message)
 
 	}
+}
+
+func sendAll(message *Message) {
+	resp := &Message{
+				Text: message.Text,
+				Name: message.Name,
+			}
+			for n, v := range(active) {
+				if err := websocket.JSON.Send(v, resp); err != nil {
+					Log(err)
+					delete(active, n)
+				}
+			}
 }
 
 func online() *Online {
