@@ -60,18 +60,12 @@ func Echo(ws *websocket.Conn) {
 			Msg: reqJSON.Msg,
 			Name: reqJSON.Name,
 		}
-		ch := make(chan error, len(active))
 		for n, v := range(active) {
-			go func() {
-				err := websocket.JSON.Send(v, resp)
-				ch<- err
-				if err != nil {
-					Log(err)
-					delete(active, n)
-				}
-			}()
+			if err := websocket.JSON.Send(v, resp); err != nil {
+				Log(err)
+				delete(active, n)
+			}
 		}
-		<-ch
 	}
 }
 
