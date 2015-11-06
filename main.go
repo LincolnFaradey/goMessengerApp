@@ -51,15 +51,22 @@ func Echo(ws *websocket.Conn) {
 		log.Println(string(out))
 
 		active[reqJSON.Name] = ws
+
+		if reqJSON.Msg == "Register" {
+			continue
+		}
+
 		resp := &JSONRequest {
 			Msg: reqJSON.Msg,
 			Name: reqJSON.Name,
 		}
 		for n, v := range(active) {
+			go func() {
 				if err := websocket.JSON.Send(v, resp); err != nil {
 					Log(err)
 					delete(active, n)
 				}
+			}()
 		}
 	}
 }
