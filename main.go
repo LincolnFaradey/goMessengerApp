@@ -12,11 +12,6 @@ const server = ":6969"
 
 var active = make(map[string]*websocket.Conn)
 
-type Peer struct  {
-	client *websocket.Conn
-	name string
-}
-
 type Message struct {
 	Text string `json:"message"`
 	Name string `json:"name"`
@@ -26,7 +21,7 @@ type Online struct {
 	Users []string `json:"users"`
 }
 
-func Echo(ws *websocket.Conn) {
+func Chat(ws *websocket.Conn) {
 	var message Message
 	defer ws.Close()
 
@@ -82,7 +77,7 @@ func Log(err error) {
 
 func main() {
 	log.Println("Server started on", server)
-	http.Handle("/", websocket.Handler(Echo))
+	http.Handle("/", websocket.Handler(Chat))
 	if err := http.ListenAndServe(server, nil); err != nil {
 		panic(err)
 	}
